@@ -32,12 +32,13 @@ def generateDataFrame(spark: SparkSession) {
 
 This passes the write commands through to spark, but also logs the dataframe to the logging location. This (and the associated metadata file) can then be read manually in whatever tooling you use, or used with `sdmp-ui`.
 
-## Metadata 
+## Metadata git push 
 
 If you wish to read the metadata file directly for your own internal tooling, the specification is as follows:
 
 
 JSON file:
+```
 {
     [
         {
@@ -49,3 +50,4 @@ JSON file:
         }
     ]
 }
+```
