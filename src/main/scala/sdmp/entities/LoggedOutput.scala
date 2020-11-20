@@ -3,7 +3,6 @@ case class LoggedOutput(uri: String, format: String, description: String, status
 
 object LoggedOutput {
     def apply(uri: String, format: OutputFormat, description: String, status: OutputStatus, size: Double, stackTrace: String) {
-        
         val formatStr = format match {
             case Csv => "csv"
             case Json => "json"

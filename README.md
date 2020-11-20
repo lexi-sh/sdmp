@@ -47,8 +47,9 @@ JSON file:
             "description": "optional description given",
             "status": "empty"|"completed"|"in progress",
             "size": null|123456.5 // megabytes,
-            "stacktrace": "..."
-        }
+            "stacktrace": "...",
+            "package": "..."
+        }A 
     ]
 }
 ```
