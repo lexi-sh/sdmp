@@ -1,5 +1,14 @@
 package sdmp.entities
-case class LoggedOutput(uri: String, format: String, description: String, status: String, size: Double, stackTrace: String)
+case class LoggedOutput(uri: String, format: String, description: String, status: String, size: Double, stackTrace: String) {
+    override def toString: String = {
+        s"uri: $uri\n" +
+          s"format: $format\n" +
+          s"description: $description\n" +
+          s"status: $status\n" +
+          s"size: $size\n" +
+          s"stackTrace: $stackTrace"
+    }
+}
 
 object LoggedOutput {
     def apply(uri: String, format: OutputFormat, description: String, status: OutputStatus, size: Double, stackTrace: String) {
@@ -16,4 +25,4 @@ object LoggedOutput {
         }
         LoggedOutput(uri, formatStr, description, statusStr, size, stackTrace)
     }
-}
+}   
