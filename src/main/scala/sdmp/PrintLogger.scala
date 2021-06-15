@@ -11,9 +11,9 @@ case class PrintLogger() extends SdmpLogger {
   implicit class implicits[U](val writer: DataFrameWriter[U]) {
     def sdmpParquet(path: String, description: String = ""): Unit = {
       val stackTrace = StackTraceGenerator.getStackTraceForLogging()
-      log(LoggedOutput(path, Parquet, description, InProgress, 0D, stackTrace))
+      log(LoggedOutput(path, Parquet, description, InProgress, stackTrace))
       writer.parquet(path)
-      log(LoggedOutput(path, Parquet, description, Completed, 0D, stackTrace))
+      log(LoggedOutput(path, Parquet, description, Completed, stackTrace))
     }
   }
 }

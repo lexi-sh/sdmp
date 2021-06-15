@@ -1,5 +1,7 @@
 # Spark Data Management Platform
 
+![master](https://github.com/christophertrml/sdmp/actions/workflows/scala.yml/badge.svg?branch=master)
+
 The Spark Data Management Platform (or SDMP for short) is a standardized way to log off what each dataset you use within your Spark data pipelines means, where they are, and watch the status of them. The SDMP UI offers a view into these datasets, as well as an easy way to see a preview of the data and also delete or move any datasets in case you wish to quickly re-run a job.
 
 ## Status
