@@ -3,9 +3,9 @@ package sdmp
 
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 import org.apache.spark.sql.SparkSession
-
 import java.io.File
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
+
 import scala.reflect.io.Directory
 
 case class TestData(id: Int, data: String)
@@ -38,5 +38,9 @@ class LoggerTests  extends FlatSpec with BeforeAndAfter {
     val df = Seq(TestData(1, "abc")).toDF()
 
     df.write.sdmpParquet("/tmp/testdata", "test data description")
+
+    val file = Files.readAllLines(Paths.get("/tmp/logs/sdmp.json"));
+    val x = 4
+
   }
 }
