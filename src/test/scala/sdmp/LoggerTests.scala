@@ -1,9 +1,10 @@
 package sdmp
 
 
-import com.amazonaws.client.builder.AwsClientBuilder
+import com.amazonaws.client.builder
+import com.amazonaws.client.builder.{AwsClientBuilder, AwsSyncClientBuilder}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 import org.apache.spark.sql.SparkSession
 
@@ -50,10 +51,21 @@ class LoggerTests extends FlatSpec with BeforeAndAfter {
     val spark = SparkSession.builder().master("local").getOrCreate()
     import spark.implicits._
 
-//    val s3Client = S3Client.builder().withEndpointConfiguration(new EndpointConfiguration("http://localhost:4566", "local"))
-//      .build()
+    val s3Client = AmazonS3ClientBuilder
+      .standard()
+      .withEndpointConfiguration(
+        new EndpointConfiguration("http://localhost:4566", "us-west-2"))
+      .withRegion("us-west-2")
+      .build()
 
-//    val s3Logger = S3Logger(s3Client, "my-bucket", "my-key")
+    val s3Logger = S3Logger(s3Client, "sdmp-test-bucket", "my-key")
 
+    import s3Logger.implicits
+    val df = Seq(TestData(1, "abc")).toDF()
+
+    df.write.sdmpParquet("/tmp/testdata", "test data description")
+
+    val file = Files.readAllLines(Paths.get("/tmp/logs/sdmp.json"));
+    val x = 4
   }
 }
