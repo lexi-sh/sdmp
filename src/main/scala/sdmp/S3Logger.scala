@@ -1,13 +1,13 @@
 package sdmp
 
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.AmazonS3
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.apache.spark.sql.DataFrameWriter
 import sdmp.entities.{Completed, InProgress, LoggedOutput, Parquet}
 
-case class S3Logger(s3client: AmazonS3Client, bucket: String, key: String) extends SdmpLogger {
+case class S3Logger(s3client: AmazonS3, bucket: String, key: String) extends SdmpLogger {
   private val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)
   private val writer = mapper.writer().withDefaultPrettyPrinter()
