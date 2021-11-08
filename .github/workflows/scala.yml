@@ -21,4 +21,8 @@ jobs:
     - name: Build the stack
       run: docker-compose up -d
     - name: Run tests
-      run: sbt test
+      run: sbt test 
+      env:
+        AWS_ACCESS_KEY_ID: xxx
+        AWS_SECRET_ACCESS_KEY: xxx
+        AWS_DEFAULT_REGION: us-east-1
