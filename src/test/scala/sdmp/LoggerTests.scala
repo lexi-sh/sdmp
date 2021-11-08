@@ -13,7 +13,13 @@ import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import scala.reflect.io.Directory
 
-class LoggerTests extends FlatSpec with BeforeAndAfter {
+import sdmp.entities.LoggedOutput
+import org.scalatest.Matchers
+import com.fasterxml.jackson.module.scala.ScalaObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+
+class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
   before {
     val directory = new Directory(new File("/tmp/testdata"))
     directory.deleteRecursively()
@@ -54,18 +60,28 @@ class LoggerTests extends FlatSpec with BeforeAndAfter {
     val s3Client = AmazonS3ClientBuilder
       .standard()
       .withEndpointConfiguration(
-        new EndpointConfiguration("http://localhost:4566", "us-west-2"))
-      .withRegion("us-west-2")
+        new EndpointConfiguration("http://localhost:4566", "us-east-1"))
+      .enablePathStyleAccess()
       .build()
 
-    val s3Logger = S3Logger(s3Client, "sdmp-test-bucket", "my-key")
+    val bucket = "sdmp-test-bucket"
+    val key = "my-key"
+
+    s3Client.deleteObject(bucket, key)
+
+    val s3Logger = S3Logger(s3Client, bucket, key)
 
     import s3Logger.implicits
     val df = Seq(TestData(1, "abc")).toDF()
 
     df.write.sdmpParquet("/tmp/testdata", "test data description")
 
-    val file = Files.readAllLines(Paths.get("/tmp/logs/sdmp.json"));
-    val x = 4
+    val fileStream = s3Client.getObject(bucket, s"$key/sdmp.json").getObjectContent
+    val fileStr = scala.io.Source.fromInputStream(fileStream).mkString
+    val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+
+    val currentMessages: List[LoggedOutput] = mapper.readValue(fileStr, classOf[List[LoggedOutput]])
+    currentMessages.length shouldBe 2
   }
 }

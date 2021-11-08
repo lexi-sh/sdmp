@@ -18,5 +18,7 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Build the stack
+      run: docker-compose up -d
     - name: Run tests
       run: sbt test
