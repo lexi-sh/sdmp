@@ -11,10 +11,6 @@ import java.nio.file.{Files, Paths}
 
 case class FileLogger(basePath: String) extends SdmpLogger {
 
-  private val mapper = new ObjectMapper() with ScalaObjectMapper
-  mapper.registerModule(DefaultScalaModule)
-  private val writer = mapper.writer().withDefaultPrettyPrinter()
-
   override def log(message: LoggedOutput): Unit = {
 
     val filePath = Paths.get(s"$basePath/sdmp.json")
@@ -25,7 +21,7 @@ case class FileLogger(basePath: String) extends SdmpLogger {
     } else {
       val fileStr = Files.readAllLines(filePath).toArray().mkString("")
 
-      val currentMessages: List[LoggedOutput] = mapper.readValue(fileStr, classOf[List[LoggedOutput]])
+      val currentMessages: Seq[LoggedOutput] = mapper.readValue(fileStr, classOf[Array[LoggedOutput]])
 
       Files.deleteIfExists(backupFilePath)
       Files.copy(filePath, backupFilePath)
@@ -37,14 +33,5 @@ case class FileLogger(basePath: String) extends SdmpLogger {
     val jsonStr = writer.writeValueAsString(messages)
 
     Files.write(filePath, jsonStr.getBytes(StandardCharsets.UTF_8))
-  }
-
-  implicit class implicits[U](val writer: DataFrameWriter[U]) {
-    def sdmpParquet(path: String, description: String = ""): Unit = {
-      val stackTrace = StackTraceGenerator.getStackTraceForLogging()
-      log(LoggedOutput(path, Parquet, description, InProgress, stackTrace))
-      writer.parquet(path)
-      log(LoggedOutput(path, Parquet, description, Completed, stackTrace))
-    }
   }
 }

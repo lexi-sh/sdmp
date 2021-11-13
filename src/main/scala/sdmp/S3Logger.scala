@@ -8,10 +8,6 @@ import org.apache.spark.sql.DataFrameWriter
 import sdmp.entities.{Completed, InProgress, LoggedOutput, Parquet}
 
 case class S3Logger(s3client: AmazonS3, bucket: String, key: String) extends SdmpLogger {
-  private val mapper = new ObjectMapper() with ScalaObjectMapper
-  mapper.registerModule(DefaultScalaModule)
-  private val writer = mapper.writer().withDefaultPrettyPrinter()
-
   override def log(message: LoggedOutput): Unit = {
 
     synchronized {
@@ -32,15 +28,6 @@ case class S3Logger(s3client: AmazonS3, bucket: String, key: String) extends Sdm
       val jsonStr = writer.writeValueAsString(messages)
 
       s3client.putObject(bucket, s"$key/sdmp.json", jsonStr)
-    }
-  }
-
-  implicit class implicits[U](val writer: DataFrameWriter[U]) {
-    def sdmpParquet(path: String, description: String = ""): Unit = {
-      val stackTrace = StackTraceGenerator.getStackTraceForLogging()
-      log(LoggedOutput(path, Parquet, description, InProgress, stackTrace))
-      writer.parquet(path)
-      log(LoggedOutput(path, Parquet, description, Completed, stackTrace))
     }
   }
 }

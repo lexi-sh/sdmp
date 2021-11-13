@@ -20,13 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
+  val rootPath = "/tmp/logger-tests/"
+  val spark = SparkSession.builder().master("local").getOrCreate()
+    spark.sparkContext.setLogLevel("ERROR")
   before {
-    val directory = new Directory(new File("/tmp/testdata"))
-    directory.deleteRecursively()
+    val dataDirectory = new Directory(new File(rootPath))
+    dataDirectory.deleteRecursively()
   }
 
   it should "run the print logger" in {
-    val spark = SparkSession.builder().master("local").getOrCreate()
+    
     import spark.implicits._
 
     val sdmpLogger = PrintLogger()
@@ -34,27 +37,33 @@ class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
     import sdmpLogger.implicits
     val df = Seq(TestData(1, "abc")).toDF()
 
-    df.write.sdmpParquet("/tmp/testdata", "test data description")
+    df.write.sdmpParquet(s"$rootPath/one", "test data description")
   }
 
   it should "run the file logger" in {
-    val spark = SparkSession.builder().master("local").getOrCreate()
     import spark.implicits._
 
-    val sdmpLogger = FileLogger("/tmp/logs/")
+    val sdmpLogger = FileLogger(s"$rootPath/logger")
 
     import sdmpLogger.implicits
     val df = Seq(TestData(1, "abc")).toDF()
 
-    df.write.sdmpParquet("/tmp/testdata", "test data description")
+    df.write.sdmpParquet(s"$rootPath/two", "test data description")
 
-    val file = Files.readAllLines(Paths.get("/tmp/logs/sdmp.json"));
-    val x = 4
+    df.write.sdmpParquet(s"$rootPath/three", "test data description second")
 
+    val fileLines = scala.io.Source.fromFile(s"$rootPath/logger/sdmp.json")
+    val str = fileLines.mkString
+    
+    val mapper = new ObjectMapper() with ScalaObjectMapper
+    mapper.registerModule(DefaultScalaModule)
+    val o = mapper.readValue(str, classOf[Array[LoggedOutput]]).toSeq.head
+    o.stackTrace contains("sdmp.SdmpLogger$implicits") shouldBe false
+    o.stackTrace contains("SdmpLogger.scala:") shouldBe false
+    o.stackTrace contains("sdmp.LoggerTests.") shouldBe true
   }
 
   it should "run the s3 logger across multiple threads without issue" in {
-    val spark = SparkSession.builder().master("local").getOrCreate()
     import spark.implicits._
 
     val s3Client = AmazonS3ClientBuilder
@@ -67,14 +76,14 @@ class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
     val bucket = "sdmp-test-bucket"
     val key = "my-key"
 
-    s3Client.deleteObject(bucket, key)
+    s3Client.deleteObject(bucket, s"$key/sdmp.json")
 
     val s3Logger = S3Logger(s3Client, bucket, key)
 
     import s3Logger.implicits
     val df = Seq(TestData(1, "abc")).toDF()
 
-    df.write.sdmpParquet("/tmp/testdata", "test data description")
+    df.write.sdmpParquet(s"$rootPath/five", "test data description")
 
     val fileStream = s3Client.getObject(bucket, s"$key/sdmp.json").getObjectContent
     val fileStr = scala.io.Source.fromInputStream(fileStream).mkString
