@@ -2,9 +2,10 @@ package sdmp
 
 import org.apache.spark.sql.{DataFrame, DataFrameWriter}
 import sdmp.entities._
+import java.io.PrintWriter
 
-case class PrintLogger() extends SdmpLogger {
+case class PrintLogger(pw: PrintWriter) extends SdmpLogger {
   override def log(message: LoggedOutput): Unit = {
-    println(message.toString())
+    pw.write(message.toString())
   }
 }

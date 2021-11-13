@@ -18,6 +18,7 @@ import org.scalatest.Matchers
 import com.fasterxml.jackson.module.scala.ScalaObjectMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import java.io.PrintWriter
 
 class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
   val rootPath = "/tmp/logger-tests/"
@@ -27,19 +28,7 @@ class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
     val dataDirectory = new Directory(new File(rootPath))
     dataDirectory.deleteRecursively()
   }
-
-  it should "run the print logger" in {
-    
-    import spark.implicits._
-
-    val sdmpLogger = PrintLogger()
-
-    import sdmpLogger.implicits
-    val df = Seq(TestData(1, "abc")).toDF()
-
-    df.write.sdmpParquet(s"$rootPath/one", "test data description")
-  }
-
+ 
   it should "run the file logger" in {
     import spark.implicits._
 
@@ -58,9 +47,8 @@ class LoggerTests extends FlatSpec with BeforeAndAfter with Matchers {
     val mapper = new ObjectMapper() with ScalaObjectMapper
     mapper.registerModule(DefaultScalaModule)
     val o = mapper.readValue(str, classOf[Array[LoggedOutput]]).toSeq.head
-    o.stackTrace contains("sdmp.SdmpLogger$implicits") shouldBe false
-    o.stackTrace contains("SdmpLogger.scala:") shouldBe false
-    o.stackTrace contains("sdmp.LoggerTests.") shouldBe true
+    o.stackTrace should include("sdmp.LoggerTests")
+    o.stackTrace should not include "SdmpLogger.scala:" 
   }
 
   it should "run the s3 logger across multiple threads without issue" in {
