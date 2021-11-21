@@ -21,6 +21,7 @@ object LoggedOutput {
             case Completed => "completed"
             case Empty => "empty"
             case InProgress => "in progress"
+            case Failed => "failed"
         }
         LoggedOutput(uri, formatStr, description, statusStr, stackTrace)
     }
